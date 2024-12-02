@@ -1,5 +1,7 @@
 (ns advent-of-code-2024.day1
-  (:require [instaparse.core :as insta]))
+  (:require
+   [clojure.edn :refer [read-string]]
+   [instaparse.core :as insta]))
 
 ;; syntax: https://github.com/Engelberg/instaparse?tab=readme-ov-file#notation
 (def number-pair-parser

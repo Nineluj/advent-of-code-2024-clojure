@@ -2,7 +2,8 @@
   (:require
    [clojure.string :as str]
    [clojure.tools.cli :refer [parse-opts]]
-   [advent-of-code-2024.day1 :as day1]))
+   [advent-of-code-2024.day1 :as day1]
+   [advent-of-code-2024.day2 :as day2]))
 
 (def cli-options
   ;; An option with a required argument
@@ -25,7 +26,9 @@
 
 (def handlers
   {1 {1 day1/part1
-      2 day1/part2}})
+      2 day1/part2}
+   2 {1 day2/part1
+      2 day2/part2}})
 
 (defn run [day part test?]
   (let [input (get-input day test?)

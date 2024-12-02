@@ -19,20 +19,19 @@
                       {:error (insta/get-failure parsed)}))
       (->> parsed
            (insta/transform
-            {:number read-string
+            {:number clojure.edn/read-string
              :line vector
              :document vector})))))
 
-(defn get-delta-between-elements [xs]
+(defn get-deltas [xs]
   (->> xs
        (partition 2 1)
-       (map #(apply - %))
-       (map #(* % -1))))
+       (map (fn [[x0 x1]] (- x1 x0)))))
 
 (def safe-decrease #(<= 1 % 3))
 (def safe-increase #(>= -1 % -3))
 
-(defn is-report-safe? [nums]
+(defn safe-sequence? [nums]
   (or
    (every? safe-increase nums)
    (every? safe-decrease nums)))
@@ -40,14 +39,8 @@
 (defn is-safe
   [nums]
   (->> nums
-       get-delta-between-elements
-       is-report-safe?))
-
-;; (defn is-safe-v2
-;;   [nums]
-;;   (let [xs (get-delta-between-elements nums)
-;;         xs' (get-delta-between-elements xs)]
-;;     xs'))
+       get-deltas
+       safe-sequence?))
 
 (defn part1
   [inp]
@@ -56,5 +49,13 @@
        (filter is-safe)
        count))
 
+(defn drop-nth [n xs]
+  (keep-indexed #(when (not= %1 n) %2) xs))
+
 (defn part2 [inp]
-  nil)
+  (->> inp
+       parse-input
+       (filter (fn [nums]
+                 (some #(is-safe (drop-nth % nums))
+                       (range (count nums)))))  ; Try removing each position
+       count))

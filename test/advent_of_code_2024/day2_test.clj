@@ -9,5 +9,5 @@
 (deftest test-part-1-example
   (is (= (sut/part1 example-input) 2)))
 
-;; (deftest test-part-2-example
-;;   (is (= (sut/part2 example-input) 31)))
+(deftest test-part-2-example
+  (is (= (sut/part2 example-input) 4)))

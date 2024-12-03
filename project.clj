@@ -5,7 +5,8 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/tools.cli "1.1.230"]
-                 [instaparse "1.5.0"]]
+                 [instaparse "1.5.0"]
+                 [criterium "0.4.6"]]
   :main ^:skip-aot advent-of-code-2024.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all

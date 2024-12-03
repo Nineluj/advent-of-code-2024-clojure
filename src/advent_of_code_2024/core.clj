@@ -2,8 +2,10 @@
   (:require
    [clojure.string :as str]
    [clojure.tools.cli :refer [parse-opts]]
+   [criterium.core :as cc]
    [advent-of-code-2024.day1 :as day1]
-   [advent-of-code-2024.day2 :as day2]))
+   [advent-of-code-2024.day2 :as day2]
+   [advent-of-code-2024.day3 :as day3]))
 
 (def cli-options
   ;; An option with a required argument
@@ -24,11 +26,17 @@
         path (str dir "/day" day-number ".txt")]
     (str/trim-newline (slurp path))))
 
+;; Define handlers using vars (#') instead of direct function references
+;; to allow for dynamic function redefinition during REPL development.
+;; When functions are redefined, the handlers map will automatically
+;; use the new implementations.
 (def handlers
-  {1 {1 day1/part1
-      2 day1/part2}
-   2 {1 day2/part1
-      2 day2/part2}})
+  {1 {1 #'day1/part1
+      2 #'day1/part2}
+   2 {1 #'day2/part1
+      2 #'day2/part2}
+   3 {1 #'day3/part1
+      2 #'day3/part2}})
 
 (defn run [day part test?]
   (let [input (get-input day test?)
@@ -36,6 +44,15 @@
                     (get day)
                     (get part))]
     (handler input)))
+
+(defn bench []
+  (doseq [[day value] handlers]
+    (println "=> Day" day)
+    (doseq [[part handler] value]
+      (println ">>> Part" part)
+      (let [input (get-input day false)]
+        (cc/quick-bench
+            (handler input))))))
 
 (defn -main
   "Used to dispatch tasks from the command line.

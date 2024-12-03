@@ -1,6 +1,6 @@
 (ns advent-of-code-2024.day2
   (:require
-   [clojure.edn :refer [read-string]]
+   [clojure.edn]
    [instaparse.core :as insta]))
 
 ;; syntax: https://github.com/Engelberg/instaparse?tab=readme-ov-file#notation

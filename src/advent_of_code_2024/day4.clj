@@ -78,8 +78,7 @@
         valid-mas? #(or (cu/vec-eq? % part-2-search)
                         (cu/vec-eq? (reverse %) part-2-search))
         checker (fn [search]
-                  (let [m0 (take 3 search)
-                        m1 (take 3 (drop 3 search))]
+                  (let [[m0 m1] (split-at 3 search)]
                     (and
                      (valid-mas? m0)
                      (valid-mas? m1))))]

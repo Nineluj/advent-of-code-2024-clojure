@@ -1,15 +1,13 @@
 (ns advent-of-code-2024.core
   (:require
-   [clojure.string :as str]
+   [advent-of-code-2024.common-utils :as cu]
    [clojure.tools.cli :refer [parse-opts]]
    [criterium.core :as cc]
    [advent-of-code-2024.day1 :as day1]
    [advent-of-code-2024.day2 :as day2]
    [advent-of-code-2024.day3 :as day3]
-   [advent-of-code-2024.day4 :as day4]))
-
-(def input-dir "inputs")
-(def sample-dir "samples")
+   [advent-of-code-2024.day4 :as day4]
+   [advent-of-code-2024.day5 :as day5]))
 
 (def cli-options
   ;; An option with a required argument
@@ -34,15 +32,12 @@
    3 {1 #'day3/part1
       2 #'day3/part2}
    4 {1 #'day4/part1
-      2 #'day4/part2}})
-
-(defn get-input [day-number test-data?]
-  (let [dir (if test-data? sample-dir input-dir)
-        path (str dir "/day" day-number ".txt")]
-    (str/trim-newline (slurp path))))
+      2 #'day4/part2}
+   5 {1 #'day5/part1
+      2 #'day5/part2}})
 
 (defn run [day part test?]
-  (let [input (get-input day test?)
+  (let [input (cu/get-input day test?)
         handler (-> handlers
                     (get day)
                     (get part))]
@@ -53,9 +48,9 @@
     (println "=> Day" day)
     (doseq [[part handler] value]
       (println ">>> Part" part)
-      (let [input (get-input day false)]
+      (let [input (cu/get-input day false)]
         (cc/quick-bench
-         (handler input))))))
+            (handler input))))))
 
 (defn -main
   "Used to dispatch tasks from the command line.

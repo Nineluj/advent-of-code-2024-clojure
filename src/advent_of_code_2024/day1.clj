@@ -1,7 +1,8 @@
 (ns advent-of-code-2024.day1
   (:require
    [clojure.edn :refer [read-string]]
-   [instaparse.core :as insta]))
+   [instaparse.core :as insta]
+   [advent-of-code-2024.common-utils :as cu]))
 
 ;; syntax: https://github.com/Engelberg/instaparse?tab=readme-ov-file#notation
 (def number-pair-parser
@@ -24,10 +25,8 @@
              :line vector
              :document vector})))))
 
-(defn sum [lst] (apply + lst))
-
 (defn get-manhattan-distance [list1 list2]
-  (sum
+  (cu/sum
    (map #(abs (- %1 %2)) list1 list2)))
 
 (defn extract-columns
@@ -57,4 +56,4 @@
          (map #(* %
                   ;; the last arg to get is the default value
                   (get freqs % 0)))
-         sum)))
+         cu/sum)))

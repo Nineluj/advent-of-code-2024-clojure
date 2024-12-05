@@ -2,53 +2,7 @@
 (ns advent-of-code-2024.day4
   (:require
    [clojure.string :as str]
-   [advent-of-code-2024.helpers :as helpers]))
-
-(defn >> [xs x y]
-  (-> xs
-      (nth y)
-      (nth x)))
-
-(defn sum [xs] (apply + xs))
-
-(defn transpose [xs]
-  (apply mapv vector xs))
-
-(def search-offsets
-  ;; Call transpose to separate the different directions
-  ;; that are defined in the same map
-  (transpose
-   (map
-    (fn [i]
-      (let [-i (* i -1)]
-        [;; N
-         [0 i]
-         ;; NE
-         [i i]
-         ;; E
-         [i 0]
-         ;; SE
-         [i -i]
-         ;; S
-         [0 -i]
-         ;; SW
-         [-i -i]
-         ;; W
-         [-i 0]
-         ;; NW
-         [-i i]]))
-    (range 4))))
-
-(defn is-search-xmas [xs]
-  (= 0 (compare (vec xs) [\X \M \A \S])))
-
-(defn make-range-checker [max-x max-y]
-  (fn [[x y]]
-    (and
-     (>= x 0)
-     (< x max-x)
-     (>= y 0)
-     (< y max-y))))
+   [advent-of-code-2024.common-utils :as cu]))
 
 (defn get-search-coordinates [x y offsets]
   (map
@@ -58,10 +12,15 @@
 (defn map-search-to-letters [grid search]
   (map
    (fn [[x y]]
-     (>> grid x y))
+     (cu/grid-get grid x y))
    search))
 
-(defn count-search-matches-starting-at-coordinate [grid in-range? [x y]]
+(defn count-matches-around
+  [grid
+   in-range?
+   search-offsets
+   search-validator
+   [x y]]
   (->> search-offsets
        ;; get the coordinates of the searches starting here
        (map (partial get-search-coordinates x y))
@@ -70,29 +29,59 @@
        ;; get the underlying letters
        (map (partial map-search-to-letters grid))
        ;; filter out searches that aren't xmas
-       (filter is-search-xmas)
+       (filter search-validator)
        ;; count the number of matches
        count))
 
-(defn count-matches [inp]
-  (let [grid (map (comp vec seq) (str/split-lines inp))
+(defn parse-input [inp]
+  (map (comp vec seq) (str/split-lines inp)))
+
+(defn count-matches [inp search-offsets search-validator]
+  (let [grid (parse-input inp)
         max-y (count grid)
         max-x (count (first grid))
         all-coordinates (for [x (range max-x)
                               y (range max-y)]
-                          [x y])
-        search-finder (partial
-                       count-search-matches-starting-at-coordinate
-                       grid
-                       (make-range-checker max-x max-y))]
+                          [x y])]
     (->> all-coordinates
-         (map search-finder)
-         sum)))
+         (map
+          ;; use partial so that the function
+          ;; only takes x-y coordinates
+          (partial count-matches-around
+                   grid
+                   (partial cu/grid-in-range? max-x max-y)
+                   search-offsets
+                   search-validator))
+         cu/sum)))
+
+(def part-1-search [\X \M \A \S])
 
 (defn part1 [inp]
-  (count-matches inp))
+  (let [offsets
+        ;; generate the offset for each 4 letter search in
+        ;; each of the compass directions
+        (cu/grid-transpose
+         (for [i (range 4)]
+           [[0 i] [i i] [i 0] [i (- i)]
+            [0 (- i)] [(- i) (- i)] [(- i) 0] [(- i) i]]))
+        checker #(cu/vec-eq? % part-1-search)]
+    (count-matches inp offsets checker)))
 
-(defn part2 [inp] nil)
+(def part-2-search [\M \A \S])
 
-;; (def sample (advent-of-code-2024.helpers/get-input 4 true))
-;; (part1 sample)
+(defn part2 [inp]
+  (let [offsets
+        [[;; top left to bottom right
+          [-1 1] [0 0] [1 -1]
+          ;; top right to bottom left
+          [1 1] [0 0] [-1 -1]]]
+        valid-mas? #(or (cu/vec-eq? % part-2-search)
+                        (cu/vec-eq? (reverse %) part-2-search))
+        checker (fn [search]
+                  (let [m0 (take 3 search)
+                        m1 (take 3 (drop 3 search))]
+                    (and
+                     (valid-mas? m0)
+                     (valid-mas? m1))))]
+    (count-matches inp offsets checker)))
+

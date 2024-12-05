@@ -59,6 +59,16 @@
        (recur (rest xs) (cons x prev)))
       true)))
 
+(defn fix-ordering [dependencies update]
+  (sort
+   (fn [x0 x1]
+     (let [x0-deps (get dependencies x0)
+           x1-deps (get dependencies x1)]
+       (cond (contains? x0-deps x1) 1
+             (contains? x1-deps x0) -1
+             :else 0)))
+   update))
+
 (defn part1 [inp]
   (let [{:keys [ordering updates]} (parse-input inp)
         dependencies (get-order-dependencies ordering)]
@@ -67,5 +77,11 @@
          (map get-middle-element)
          cu/sum)))
 
-(defn part2 [inp] nil)
-
+(defn part2 [inp]
+  (let [{:keys [ordering updates]} (parse-input inp)
+        dependencies (get-order-dependencies ordering)]
+    (->> updates
+         (filter (comp not (partial check dependencies)))
+         (map (partial fix-ordering dependencies))
+         (map get-middle-element)
+         cu/sum)))

@@ -115,19 +115,22 @@
                   parse-input)
         initial-path (patrol grid)]
     (->> initial-path
-         (reduce (fn [{:keys [already-placed looping] :as acc} {:keys [pos dir] :as start}]
-                   (let [obstacle-pos (get-move-pos pos dir)]
+         ;; we try to put an obstacle right in front of each position
+         ;; in the path
+         (partition 2 1)
+         (reduce (fn [{:keys [tried-obstacle-pos looping] :as acc} [start obstacle]]
+                   (let [obstacle-pos (:pos obstacle)]
                      ;; we avoid placing an obstacle somewhere we've already tried
                      (if (or
                           (not (is-valid-obstacle-pos? grid obstacle-pos))
-                          (contains? already-placed obstacle-pos))
+                          (contains? tried-obstacle-pos obstacle-pos))
                        acc
                        (let [result (patrol grid start obstacle-pos)]
-                         {:already-placed (conj already-placed obstacle-pos)
+                         {:tried-obstacle-pos (conj tried-obstacle-pos obstacle-pos)
                           :looping (if (= result :loop)
                                      (cons obstacle-pos looping)
                                      looping)}))))
-                 {:already-placed #{} :looping '()})
+                 {:tried-obstacle-pos #{} :looping '()})
          :looping
          (into #{})
          count)))

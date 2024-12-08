@@ -9,10 +9,13 @@
         path (str dir "/day" day-number ".txt")]
     (str/trim-newline (slurp path))))
 
-(defn grid-get [grid x y]
-  (-> grid
-      (nth y)
-      (nth x)))
+(defn grid-get
+  ([grid x y]
+   (-> grid
+       (nth y)
+       (nth x)))
+  ([grid [x y]]
+   (grid-get grid x y)))
 
 (defn vec-eq? [v0 v1]
   (= 0 (compare (vec v0) (vec v1))))

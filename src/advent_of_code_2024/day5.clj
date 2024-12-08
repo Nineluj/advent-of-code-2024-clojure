@@ -1,4 +1,3 @@
-;; sample file to copy
 (ns advent-of-code-2024.day5
   (:require [clojure.edn]
             [clojure.string :as str]

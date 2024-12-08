@@ -8,6 +8,8 @@
                  [instaparse "1.5.0"]
                  [criterium "0.4.6"]]
   :main ^:skip-aot advent-of-code-2024.core
+  ;; allow cider stop running threads
+  :jvm-opts ["-Djdk.attach.allowAttachSelf"]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

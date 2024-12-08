@@ -25,9 +25,14 @@
 (defn grid-transpose [grid]
   (apply mapv vector grid))
 
-(defn grid-in-range? [max-x max-y [x y]]
-  (and
-   (>= x 0)
-   (< x max-x)
-   (>= y 0)
-   (< y max-y)))
+(defn grid-in-range?
+  ([max-x max-y [x y]]
+   (and
+    (>= x 0)
+    (< x max-x)
+    (>= y 0)
+    (< y max-y)))
+  ([grid pos]
+   (grid-in-range? (count (first grid))
+                   (count grid)
+                   pos)))

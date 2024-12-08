@@ -3,6 +3,7 @@
    [instaparse.core :as insta]
    [advent-of-code-2024.common-utils :as cu]))
 
+;; [0,0] is top left, we only have positive x and y
 (def parser
   (insta/parser
    "map = (line <'\n'>)+ line
@@ -24,15 +25,6 @@
              :line vector
              :map vector})))))
 
-(defn get-starting-location
-  ;; Get the x-y coordinates of the starting location
-  [grid]
-  (first
-   (for [[y row] (map-indexed vector grid)
-         [x val] (map-indexed vector row)
-         :when (= :start val)]
-     [x y])))
-
 (def direction-rotate
   {:north :east
    :east :south
@@ -49,24 +41,31 @@
   (let [[offset-x offset-y] (get direction-offset direction)]
     [(+ x offset-x) (+ y offset-y)]))
 
+(defn get-starting-location
+  ;; Get the x-y coordinates of the starting location
+  [grid]
+  (first
+   (for [[y row] (map-indexed vector grid)
+         [x val] (map-indexed vector row)
+         :when (= :start val)]
+     [x y])))
+
 (defn move
   "Give the next position after having moved, or nil if the move results
   in going outside of the grid"
   [pos direction grid obstacle-place-pos]
-  (let [max-y (count grid)
-        max-x (count (first grid))
-        new-pos (get-move-pos pos direction)]
-    (if (not (cu/grid-in-range? max-x max-y new-pos))
+  (let [new-pos (get-move-pos pos direction)]
+    (if (not (cu/grid-in-range? grid new-pos))
       nil
       (let [at-position (cu/grid-get grid new-pos)]
         (cond
           (or
-           (= at-position obstacle-place-pos)
+           (= new-pos obstacle-place-pos)
            (= at-position :obstacle))
-          [pos (get direction-rotate direction)]
+          {:pos pos :dir (get direction-rotate direction)}
 
           :else
-          [new-pos direction])))))
+          {:pos new-pos :dir direction})))))
 
 (defn patrol
   "Get the coordinates and directions for a patrol that moves until
@@ -74,59 +73,62 @@
   ([grid {:keys [pos dir]} obstacle-place-pos]
    (loop [pos pos
           direction dir
-          acc '()
-          seen #{}]
-     (let [[next-pos next-dir :as next] (move pos direction grid obstacle-place-pos)
+          seen #{}
+          ordered-seen '()]
+     (let [next (move pos direction grid obstacle-place-pos)
+           {next-pos :pos next-dir :dir} next
            curr {:pos pos :dir direction}
-           new-acc (cons curr acc)
-           new-seen (conj curr seen)]
+           new-seen (conj seen curr)
+           new-ordered-seen (cons curr ordered-seen)]
        (cond
          ;; out of bounds
          (nil? next-pos)
-         (vec (reverse new-acc))
+         (vec (reverse new-ordered-seen))
 
          (contains? seen next)
          :loop
 
          :else
-         (recur next-pos next-dir new-acc new-seen)))))
+         (recur next-pos next-dir new-seen new-ordered-seen)))))
   ([grid start]
    (patrol grid start nil))
   ([grid]
    (patrol grid {:pos (get-starting-location grid) :dir :north} nil)))
 
-;; [0,0] is top left, we only have positive x and y
-
 (defn part1 [inp]
   (->> inp
        parse-input
        patrol
-       (into #{} (map :pos))
+       (map :pos)
+       ;; dedup, since a position can appear multiple
+       ;; times if it was encountered in different directions
+       (into #{})
        count))
 
-(defn placing-obstacle-causes-loop? [grid {:keys [pos dir] :as start}]
-  (let [obstacle-pos (get-move-pos pos dir)
-        result (patrol grid start obstacle-pos)]
-    (println result)
-    (if (= :loop result)
-      obstacle-pos
-      nil)))
+(defn is-valid-obstacle-pos? [grid obstacle-pos]
+  (and
+   (cu/grid-in-range? grid obstacle-pos)
+   (= (cu/grid-get grid obstacle-pos) :empty)))
 
 (defn part2 [inp]
   (let [grid (->> inp
                   parse-input)
         initial-path (patrol grid)]
     (->> initial-path
-         (map #(placing-obstacle-causes-loop? grid %)))))
+         (reduce (fn [{:keys [already-placed looping] :as acc} {:keys [pos dir] :as start}]
+                   (let [obstacle-pos (get-move-pos pos dir)]
+                     ;; we avoid placing an obstacle somewhere we've already tried
+                     (if (or
+                          (not (is-valid-obstacle-pos? grid obstacle-pos))
+                          (contains? already-placed obstacle-pos))
+                       acc
+                       (let [result (patrol grid start obstacle-pos)]
+                         {:already-placed (conj already-placed obstacle-pos)
+                          :looping (if (= result :loop)
+                                     (cons obstacle-pos looping)
+                                     looping)}))))
+                 {:already-placed #{} :looping '()})
+         :looping
+         (into #{})
+         count)))
 
-(def sample (cu/get-input 6 true))
-
-;; (def sample-2 ".#................
-;; ..#...............
-;; ..................
-;; .^................
-;; ..................")
-
-;; (part1 sample)
-;; (part2 sample)
-;; (part2 sample-2)

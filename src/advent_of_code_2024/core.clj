@@ -8,7 +8,8 @@
    [advent-of-code-2024.day3 :as day3]
    [advent-of-code-2024.day4 :as day4]
    [advent-of-code-2024.day5 :as day5]
-   [advent-of-code-2024.day6 :as day6]))
+   [advent-of-code-2024.day6 :as day6]
+   [advent-of-code-2024.day7 :as day7]))
 
 (def cli-options
   ;; An option with a required argument
@@ -37,7 +38,9 @@
    5 {1 #'day5/part1
       2 #'day5/part2}
    6 {1 #'day6/part1
-      2 #'day6/part2}})
+      2 #'day6/part2}
+   7 {1 #'day7/part1
+      2 #'day7/part2}})
 
 (defn run [day part test?]
   (let [input (cu/get-input day test?)

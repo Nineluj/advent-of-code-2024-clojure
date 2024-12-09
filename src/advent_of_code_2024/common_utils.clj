@@ -20,6 +20,12 @@
 (defn vec-eq? [v0 v1]
   (= 0 (compare (vec v0) (vec v1))))
 
+(defn vec2d-subtract [[x0 y0] [x1 y1]]
+  [(- x1 x0) (- y1 y0)])
+
+(defn vec2d-add [[x0 y0] [x1 y1]]
+  [(+ x1 x0) (+ y1 y0)])
+
 (defn sum [xs] (apply + xs))
 
 (defn grid-transpose [grid]

@@ -37,16 +37,14 @@
   (->> locations
        (#(combo/combinations % 2))
        (mapcat (fn [[a0 a1]]
-                 (let [{fwd :forward bwd :backward} (get-point-sequences a0 a1 in-range?)
-                       ;; with repeat for part 2 we include the antena locations,
-                       ;; otherwise we skip them
-                       fwd-seq (if repeat fwd (rest fwd))
-                       bwd-seq (if repeat bwd (rest bwd))]
+                 (let [{fwd :forward bwd :backward} (get-point-sequences a0 a1 in-range?)]
                    (if repeat
-                     (concat fwd-seq bwd-seq)
+                     (concat fwd bwd)
+                     ;; with repeat for part 2 we include the antena locations,
+                     ;; otherwise we skip them
                      (concat
-                      (take 1 fwd-seq)
-                      (take 1 bwd-seq))))))))
+                      (take 1 (rest fwd))
+                      (take 1 (rest bwd)))))))))
 
 (defn solve [inp repeat?]
   (let [grid (parse-input inp)
@@ -56,9 +54,8 @@
     (->> grid
          get-antena-locations
          group-by-antena-type
-         (map (fn [[_ locations]]
-                (get-antinodes locations in-range? repeat?)))
-         (apply concat)
+         (mapcat (fn [[_ locations]]
+                   (get-antinodes locations in-range? repeat?)))
          (into #{})
          count)))
 
@@ -67,9 +64,3 @@
 
 (defn part2 [inp]
   (solve inp true))
-
-(def s (cu/get-input 8 true))
-
-(part1 s) ;; I broke part 1...
-(part2 s)
-
